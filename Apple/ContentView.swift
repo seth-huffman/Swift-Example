@@ -1,49 +1,61 @@
-//
-//  ContentView.swift
-//  Apple
-//
-//  Created by SETH HUFFMAN on 3/31/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    // 1. Add state to track if splash screen is finished
+    @State private var isSplashFinished = false
+    
     @State private var activeTab: AppTab = .discover
     @State private var showResults = false
     @State private var selectedSpirit = "Whiskey"
     @State private var selectedFlavor = "Smokey"
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            DS.bg.ignoresSafeArea()
-
-            // MARK: - Page Content
-            Group {
-                switch activeTab {
-                case .discover:
-                    DiscoverPage(
-                        selectedSpirit: $selectedSpirit,
-                        selectedFlavor: $selectedFlavor,
-                        showResults: $showResults
-                    )
-                case .favorites:
-                    SavedPage()
-                case .game:
-                    CocktailDashView()
-                case .profile:
-                    ProfilePage()
+        Group {
+            if !isSplashFinished {
+                // 2. Show the splash screen first
+                SplashScreen {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        isSplashFinished = true
+                    }
                 }
-            }
-            .padding(.bottom, 80)
+            } else {
+                // 3. Your original content with the Footer bar
+                ZStack(alignment: .bottom) {
+                    DS.bg.ignoresSafeArea()
 
-            // MARK: - Footer
-            Footer(activeTab: $activeTab)
+                    // MARK: - Page Content
+                    Group {
+                        switch activeTab {
+                        case .discover:
+                            DiscoverPage(
+                                selectedSpirit: $selectedSpirit,
+                                selectedFlavor: $selectedFlavor,
+                                showResults: $showResults
+                            )
+                        case .favorites:
+                            SavedPage()
+                        case .create:
+                            CreateRecipePage() // Add this line
+                        case .game:
+                            CocktailDashView()
+                        case .profile:
+                            ProfilePage()
+                        }
+                    }
+                    .padding(.bottom, 80)
+                    .transition(.opacity) // Smooth entry after splash
+
+                    // MARK: - Footer (Restored)
+                    Footer(activeTab: $activeTab)
+                }
+                .ignoresSafeArea(edges: .bottom)
+                .preferredColorScheme(.light)
+            }
         }
-        .ignoresSafeArea(edges: .bottom)
-        .preferredColorScheme(.light)
     }
 }
 
+// MARK: - Preview
 #Preview {
     ContentView()
 }

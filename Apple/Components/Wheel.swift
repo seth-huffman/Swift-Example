@@ -85,7 +85,7 @@ struct WheelSelectorView: View {
                 Text(selectedFlavor)
                     .font(.custom("Nunito-ExtraBold", size: 15))
                     .padding(.horizontal, 22).padding(.vertical, 9)
-                    .background(DS.white).foregroundColor(DS.text).clipShape(Capsule()).cardShadow()
+                    .background(DS.textMid.opacity(0.8)).foregroundColor(DS.white).clipShape(Capsule())
             }
 
             Spacer()

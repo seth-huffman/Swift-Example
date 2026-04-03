@@ -8,12 +8,13 @@ import SwiftUI
 // MARK: - Tab Enum
 
 enum AppTab: Int, CaseIterable {
-    case discover, favorites, game, profile
+    case discover, favorites, create, game, profile // Added .create
 
     var icon: String {
         switch self {
         case .discover:  return "sparkles"
         case .favorites: return "heart.fill"
+        case .create:    return "plus.circle.fill" // Icon for create
         case .game:      return "gamecontroller.fill"
         case .profile:   return "person.fill"
         }
@@ -23,6 +24,7 @@ enum AppTab: Int, CaseIterable {
         switch self {
         case .discover:  return "Discover"
         case .favorites: return "Saved"
+        case .create:    return "Create" // Label for create
         case .game:      return "Game"
         case .profile:   return "Profile"
         }
