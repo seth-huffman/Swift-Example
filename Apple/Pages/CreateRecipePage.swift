@@ -8,8 +8,10 @@ struct IngredientRow: Identifiable {
 }
 
 struct CreateRecipePage: View {
+    @Binding var savedCocktails: [Cocktail]
     @State private var selectedSpirits: Set<String> = []
     @State private var selectedFlavors: Set<String> = []
+    @State private var recipeName: String = ""
     @State private var ingredientRows: [IngredientRow] = [IngredientRow()]
     @State private var instructionSteps: [String] = [""]
     
@@ -40,6 +42,17 @@ struct CreateRecipePage: View {
             // MARK: - Scrollable Form
             ScrollView {
                 VStack(spacing: 32) {
+                    
+                    // RECIPE NAME SECTION
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("RECIPE NAME")
+                            .font(.custom("Nunito-Black", size: 11))
+                            .foregroundColor(DS.cyan)
+                            .tracking(1.4)
+                        
+                        TextField("Enter recipe name", text: $recipeName)
+                            .textFieldStyle(RecipeTextFieldStyle())
+                    }
                     
                     // SPIRITS SECTION
                     VStack(alignment: .leading, spacing: 12) {
@@ -154,9 +167,7 @@ struct CreateRecipePage: View {
                     }
 
                     // SUBMIT BUTTON
-                    Button(action: {
-                        // Logic to save the recipe to your database
-                    }) {
+                    Button(action: submitRecipe) {
                         Text("SUBMIT RECIPE")
                             .font(.custom("Nunito-Black", size: 16))
                             .foregroundColor(.white)
@@ -177,10 +188,48 @@ struct CreateRecipePage: View {
     
     // Validation Logic
     private var isFormValid: Bool {
+        !recipeName.isEmpty &&
         !selectedSpirits.isEmpty &&
         !selectedFlavors.isEmpty &&
         !(ingredientRows.first?.name.isEmpty ?? true) &&
         !(instructionSteps.first?.isEmpty ?? true)
+    }
+    
+    private func submitRecipe() {
+        // Create ingredient list as formatted strings
+        let ingredients = ingredientRows
+            .filter { !$0.name.isEmpty }
+            .map { ingredient in
+                let amount = ingredient.amount.isEmpty ? "" : ingredient.amount + " "
+                let unit = ingredient.unit.isEmpty ? "" : ingredient.unit
+                return (amount + unit).trimmingCharacters(in: .whitespaces).isEmpty ? ingredient.name : "\(amount)\(unit) \(ingredient.name)"
+            }
+        
+        // Create steps array filtered to remove empty strings
+        let steps = instructionSteps.filter { !$0.isEmpty }
+        
+        // Create the new cocktail
+        let typeString = Array(selectedSpirits).joined(separator: ", ")
+        let newCocktail = Cocktail(
+            name: recipeName,
+            type: typeString,
+            ingredients: ingredients,
+            steps: steps
+        )
+        
+        // Add to saved cocktails
+        savedCocktails.append(newCocktail)
+        
+        // Reset form
+        resetForm()
+    }
+    
+    private func resetForm() {
+        recipeName = ""
+        selectedSpirits = []
+        selectedFlavors = []
+        ingredientRows = [IngredientRow()]
+        instructionSteps = [""]
     }
 }
 

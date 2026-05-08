@@ -37,7 +37,7 @@ struct ContentView: View {
                         case .favorites:
                             SavedPage(savedCocktails: $savedCocktails)
                         case .create:
-                            CreateRecipePage() // Add this line
+                            CreateRecipePage(savedCocktails: $savedCocktails)
                         case .game:
                             CocktailDashView()
                         case .profile:
