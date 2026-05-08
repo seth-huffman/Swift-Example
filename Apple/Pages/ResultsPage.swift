@@ -8,6 +8,7 @@ import SwiftUI
 struct ResultsPage: View {
     let spirit: String
     let flavor: String
+    @Binding var savedCocktails: [Cocktail]
     let onBack: () -> Void
 
     @State private var expandedIndex: Int? = 0
@@ -67,9 +68,17 @@ struct ResultsPage: View {
                         CocktailCard(
                             cocktail: cocktail,
                             isExpanded: expandedIndex == index,
+                            isSaved: savedCocktails.contains { $0.id == cocktail.id },
                             onTap: {
                                 withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                                     expandedIndex = expandedIndex == index ? nil : index
+                                }
+                            },
+                            onHeartTap: {
+                                if let index = savedCocktails.firstIndex(where: { $0.id == cocktail.id }) {
+                                    savedCocktails.remove(at: index)
+                                } else {
+                                    savedCocktails.append(cocktail)
                                 }
                             }
                         )

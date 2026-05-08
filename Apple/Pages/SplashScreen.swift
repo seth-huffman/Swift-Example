@@ -7,24 +7,41 @@ struct SplashScreen: View {
 
     var body: some View {
         ZStack {
-            // MARK: - Solid High-Contrast Background
-            DS.text
+            // MARK: - Gradient Background (Light Blue to Dark Blue)
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(UIColor(hex: "3DD9EB")),
+                    Color(UIColor(hex: "1E8090"))
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            // MARK: - Background Image with Low Opacity
+            Image("bartender")
+                .resizable()
+                .scaledToFill()
                 .ignoresSafeArea()
+                .opacity(0.1)
 
             // MARK: - Neon Typography
-            VStack(spacing: 0) {
-                Text("Cocktail")
-                    .font(.custom("Yellowtail", size: 130))
+            VStack(spacing: 5) {
+                Image("bartender-icon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 100)
                     .foregroundColor(.white)
-                    .shadow(color: DS.cyan.opacity(0.8), radius: 10, x: 0, y: 0)
-                    .shadow(color: DS.cyan.opacity(0.4), radius: 30, x: 0, y: 0)
+                
+                Text("Bartenders")
+                    .font(.system(size: 50, weight: .bold))
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                 
-                Text("CREATOR")
-                    .font(.system(size: 16, weight: .black, design: .rounded))
-                    .tracking(25)
-                    .foregroundColor(DS.cyanMid)
-                    .padding(.leading, 25)
+                Text("BEST FRIEND")
+                    .font(.system(size: 12, weight: .medium))
+                    .tracking(10)
+                    .foregroundColor(DS.white)
             }
             .scaleEffect(textScale)
             .opacity(textOpacity)

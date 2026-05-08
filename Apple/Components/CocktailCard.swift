@@ -10,37 +10,48 @@ import SwiftUI
 struct CocktailCard: View {
     let cocktail: Cocktail
     let isExpanded: Bool
+    let isSaved: Bool
     let onTap: () -> Void
+    let onHeartTap: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
 
             // Header row
-            Button(action: onTap) {
-                HStack(alignment: .center, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(cocktail.name)
-                            .font(.custom("Nunito-ExtraBold", size: 16))
-                            .foregroundColor(DS.text)
-                        Text(cocktail.type.uppercased())
-                            .font(.custom("Nunito-Bold", size: 11))
-                            .foregroundColor(DS.textLight)
-                            .tracking(1)
+            HStack(alignment: .center, spacing: 12) {
+                Button(action: onTap) {
+                    HStack(alignment: .center, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(cocktail.name)
+                                .font(.custom("Nunito-ExtraBold", size: 16))
+                                .foregroundColor(DS.text)
+                            Text(cocktail.type.uppercased())
+                                .font(.custom("Nunito-Bold", size: 11))
+                                .foregroundColor(DS.textLight)
+                                .tracking(1)
+                        }
+                        Spacer()
                     }
-                    Spacer()
-                    
-                    // Toggle circle
+                    .padding(.horizontal, 20).padding(.vertical, 18)
+                }
+                .buttonStyle(.plain)
+                
+                // Heart button
+                Button(action: onHeartTap) {
                     ZStack {
                         Circle()
-                            .fill(isExpanded ? DS.cyan : DS.cyanLight)
+                            .fill(isSaved ? DS.cyan : DS.cyanLight)
                             .frame(width: 30, height: 30)
-                        Image(systemName: isExpanded ? "heart.fill" : "heart")
+                        Image(systemName: isSaved ? "heart.fill" : "heart")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(isExpanded ? .white : DS.cyan)
-                            .scaleEffect(isExpanded ? 1.1 : 1.0)
+                            .foregroundColor(isSaved ? .white : DS.cyan)
+                            .scaleEffect(isSaved ? 1.1 : 1.0)
                     }
-                    
-                    // Toggle circle
+                }
+                .buttonStyle(.plain)
+                
+                // Expand toggle button
+                Button(action: onTap) {
                     ZStack {
                         Circle()
                             .fill(isExpanded ? DS.cyan : DS.cyanLight)
@@ -52,9 +63,10 @@ struct CocktailCard: View {
                     }
                     .animation(.spring(response: 0.3), value: isExpanded)
                 }
-                .padding(.horizontal, 20).padding(.vertical, 18)
+                .buttonStyle(.plain)
+                .padding(.trailing, 20)
             }
-            .buttonStyle(.plain)
+            .padding(.vertical, 18)
 
             // Expanded content
             if isExpanded {

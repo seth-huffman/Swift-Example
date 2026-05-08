@@ -8,6 +8,7 @@ struct ContentView: View {
     @State private var showResults = false
     @State private var selectedSpirit = "Whiskey"
     @State private var selectedFlavor = "Smokey"
+    @State private var savedCocktails: [Cocktail] = []
 
     var body: some View {
         Group {
@@ -30,10 +31,11 @@ struct ContentView: View {
                             DiscoverPage(
                                 selectedSpirit: $selectedSpirit,
                                 selectedFlavor: $selectedFlavor,
-                                showResults: $showResults
+                                showResults: $showResults,
+                                savedCocktails: $savedCocktails
                             )
                         case .favorites:
-                            SavedPage()
+                            SavedPage(savedCocktails: $savedCocktails)
                         case .create:
                             CreateRecipePage() // Add this line
                         case .game:

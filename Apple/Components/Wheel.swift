@@ -64,31 +64,30 @@ struct WheelSelectorView: View {
         VStack(spacing: 0) {
             VStack(spacing: 6) {
                 Text("Explore Your")
-                    .font(.custom("Nunito-Black", size: 20))
+                    .font(.system(size: 20, weight: .regular))
                     .foregroundColor(DS.cyan)
                 Text("Perfect Cocktail")
-                    .font(.custom("Nunito-ExtraBold", size: 28))
+                    .font(.system(size: 28, weight: .semibold))
                     .foregroundColor(DS.text)
                 Text("Spin both rings, then tap Create")
-                    .font(.custom("Nunito-Medium", size: 12))
+                    .font(.system(size: 12, weight: .regular))
                     .foregroundColor(DS.textMid)
                     .padding(.bottom, 20)
             }
-            .padding(.top, 140)
+            .padding(.top, 100)
 
             HStack(spacing: 10) {
                 Text(selectedSpirit)
-                    .font(.custom("Nunito-ExtraBold", size: 15))
+                    .font(.system(size: 15, weight: .medium))
                     .padding(.horizontal, 22).padding(.vertical, 9)
                     .background(DS.cyan).foregroundColor(.white).clipShape(Capsule())
                 Text("×").foregroundColor(DS.textLight)
                 Text(selectedFlavor)
-                    .font(.custom("Nunito-ExtraBold", size: 15))
+                    .font(.system(size: 15, weight: .medium))
                     .padding(.horizontal, 22).padding(.vertical, 9)
                     .background(DS.textMid.opacity(0.8)).foregroundColor(DS.white).clipShape(Capsule())
             }
-
-            Spacer()
+            .padding(.bottom, 70)
 
             ZStack(alignment: .top) {
                 Triangle().fill(DS.cyan).frame(width: 25, height: 18).zIndex(2)
@@ -114,8 +113,8 @@ struct WheelSelectorView: View {
                                 .shadow(color: DS.text.opacity(0.4), radius: 15)
                             
                             Text("Create")
-                                .font(.custom("Nunito-Black", size: 38))
-                                .foregroundColor(DS.text)
+                                .font(.system(size: 38, weight: .black))
+                                .foregroundColor(DS.textButton)
                                 .tracking(1.2)
                         }
                     }
@@ -126,6 +125,8 @@ struct WheelSelectorView: View {
                 .padding(.top, 18)
             }
             .frame(maxWidth: .infinity)
+            
+            Spacer()
         }
     }
 
@@ -283,9 +284,9 @@ class WheelUIView: UIView {
             ctx.translateBy(x: cx, y: cy)
             ctx.rotate(by: start + slice/2 + .pi/2)
             
-            let weight: UIFont.Weight = r1 > 300 ? .heavy : .bold
+            // let weight: UIFont.Weight = r1 > 300 ? .heavy : .bold
             let sizeVal: CGFloat = r1 > 300 ? 13 : 11
-            let font = UIFont(name: "Nunito-Black", size: sizeVal) ?? UIFont.systemFont(ofSize: sizeVal, weight: weight)
+            let font = UIFont.systemFont(ofSize: sizeVal, weight: .bold)
             
             let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.white]
             let size = (item.0 as NSString).size(withAttributes: attrs)

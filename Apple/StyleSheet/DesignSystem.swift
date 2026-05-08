@@ -17,6 +17,7 @@ enum DS {
     static let text       = Color(hex: "1A2B3C")
     static let textMid    = Color(hex: "5A7080")
     static let textLight  = Color(hex: "9BB0BC")
+    static let textButton = Color(hex: "2ABFCE")
 
     // Corner radii
     static let radiusPill: CGFloat  = 50
