@@ -7,7 +7,7 @@ import SwiftUI
 
 struct SavedPage: View {
     @Binding var savedCocktails: [Cocktail]
-    @State private var expandedIndex: Int? = nil
+    @State private var expandedID: UUID? = nil
     
     var body: some View {
         ZStack {
@@ -47,14 +47,14 @@ struct SavedPage: View {
                         
                         // Cards
                         VStack(spacing: 12) {
-                            ForEach(Array(savedCocktails.enumerated()), id: \.element.id) { index, cocktail in
+                            ForEach(savedCocktails) { cocktail in
                                 CocktailCard(
                                     cocktail: cocktail,
-                                    isExpanded: expandedIndex == index,
+                                    isExpanded: expandedID == cocktail.id,
                                     isSaved: true,
                                     onTap: {
                                         withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                                            expandedIndex = expandedIndex == index ? nil : index
+                                            expandedID = expandedID == cocktail.id ? nil : cocktail.id
                                         }
                                     },
                                     onHeartTap: {

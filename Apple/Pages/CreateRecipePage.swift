@@ -23,14 +23,14 @@ struct CreateRecipePage: View {
     ]
     
     let spirits = ["Whiskey", "Rum", "Tequila", "Gin", "Vodka", "Brandy", "Other"]
-    let flavors = ["Smokey", "Fruity", "Herbal", "Spicy", "Sweet", "Citrusy", "Floral", "Bitter"]
+    let flavors = ["Smoky", "Fruity", "Herbal", "Spicy", "Sweet", "Citrusy", "Floral", "Bitter"]
 
     var body: some View {
         VStack(spacing: 0) {
             // MARK: - Header
             VStack(spacing: 8) {
                 Text("New Recipe")
-                    .font(.custom("Pacifico", size: 32))
+                    .font(.custom("Pacifico-Regular", size: 32))
                     .foregroundColor(DS.cyan)
                 Text("Share your latest creation")
                     .font(.custom("Nunito-SemiBold", size: 14))
@@ -188,30 +188,33 @@ struct CreateRecipePage: View {
     
     // Validation Logic
     private var isFormValid: Bool {
-        !recipeName.isEmpty &&
+        !recipeName.isBlank &&
         !selectedSpirits.isEmpty &&
         !selectedFlavors.isEmpty &&
-        !(ingredientRows.first?.name.isEmpty ?? true) &&
-        !(instructionSteps.first?.isEmpty ?? true)
+        ingredientRows.contains { !$0.name.isBlank } &&
+        instructionSteps.contains { !$0.isBlank }
     }
     
     private func submitRecipe() {
         // Create ingredient list as formatted strings
         let ingredients = ingredientRows
-            .filter { !$0.name.isEmpty }
+            .filter { !$0.name.isBlank }
             .map { ingredient in
-                let amount = ingredient.amount.isEmpty ? "" : ingredient.amount + " "
-                let unit = ingredient.unit.isEmpty ? "" : ingredient.unit
-                return (amount + unit).trimmingCharacters(in: .whitespaces).isEmpty ? ingredient.name : "\(amount)\(unit) \(ingredient.name)"
+                let name = ingredient.name.trimmed
+                let measure = [ingredient.amount.trimmed, ingredient.unit.trimmed]
+                    .filter { !$0.isEmpty }
+                    .joined(separator: " ")
+                return measure.isEmpty ? name : "\(measure) \(name)"
             }
         
         // Create steps array filtered to remove empty strings
-        let steps = instructionSteps.filter { !$0.isEmpty }
+        let steps = instructionSteps.map(\.trimmed).filter { !$0.isEmpty }
         
         // Create the new cocktail
-        let typeString = Array(selectedSpirits).joined(separator: ", ")
+        // Keep the spirits in the same order as the chips (a Set has no stable order).
+        let typeString = spirits.filter { selectedSpirits.contains($0) }.joined(separator: ", ")
         let newCocktail = Cocktail(
-            name: recipeName,
+            name: recipeName.trimmed,
             type: typeString,
             ingredients: ingredients,
             steps: steps
@@ -231,6 +234,11 @@ struct CreateRecipePage: View {
         ingredientRows = [IngredientRow()]
         instructionSteps = [""]
     }
+}
+
+private extension String {
+    var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) }
+    var isBlank: Bool { trimmed.isEmpty }
 }
 
 // MARK: - Reusable UI Components

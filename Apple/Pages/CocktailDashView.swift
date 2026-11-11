@@ -52,7 +52,7 @@ class DashGame: ObservableObject {
     private let maxSeats        = 4
 
     let spiritOptions = ["Whiskey", "Rum", "Tequila", "Gin", "Vodka", "Brandy"]
-    let flavorOptions = ["Smokey", "Fruity", "Herbal", "Spicy", "Sweet", "Citrusy", "Floral", "Bitter"]
+    let flavorOptions = ["Smoky", "Fruity", "Herbal", "Spicy", "Sweet", "Citrusy", "Floral", "Bitter"]
 
     private let names   = ["Alex", "Jamie", "Morgan", "Riley", "Sam", "Casey", "Drew", "Blake"]
     private let avatars = ["😊","😄","🥳","😎","🤗","😏","🧐","🫡"]
@@ -175,6 +175,11 @@ class DashGame: ObservableObject {
                 self.customers.removeAll { $0.id == cid }
                 self.checkLevelComplete()
             }
+        } else {
+            // Wrong drink for this guest: same penalty as submitting an order nobody wants.
+            combo = 1
+            flash("\(customer.name) didn't order that!")
+            triggerShake()
         }
         builtSpirit = nil
         builtFlavor = nil
@@ -220,6 +225,8 @@ struct CocktailDashView: View {
             case .gameOver:      DashGameOverScreen(game: game)
             }
         }
+        // Leaving the Game tab tears this view down; stop the timers so they don't keep firing.
+        .onDisappear { game.stopGame() }
     }
 }
 
