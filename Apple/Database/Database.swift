@@ -7,12 +7,20 @@ import Foundation
 
 // MARK: - Model
 
-struct Cocktail: Identifiable {
-    let id = UUID()
+struct Cocktail: Identifiable, Codable, Hashable {
+    var id: UUID = UUID()
     let name: String
     let type: String
     let ingredients: [String]
     let steps: [String]
+
+    /// Built-in recipes get a fresh `id` every launch, so a saved copy is matched
+    /// by its contents as well as its id.
+    func isSameRecipe(as other: Cocktail) -> Bool {
+        id == other.id ||
+        (name == other.name && type == other.type &&
+         ingredients == other.ingredients && steps == other.steps)
+    }
 }
 
 // MARK: - Database
@@ -389,10 +397,43 @@ let cocktailDatabase: [String: [Cocktail]] = [
 
 // MARK: - Lookup Helper
 
+/// True when the database has recipes for exactly this spirit and flavor.
+func hasExactCocktails(spirit: String, flavor: String) -> Bool {
+    cocktailDatabase["\(spirit)+\(flavor)"] != nil
+}
+
+/// Recipes for a spirit and flavor. When there is no exact match, falls back to
+/// the same spirit, then the same flavor, then a default list. Keys are sorted
+/// so the fallback is the same on every launch.
 func getCocktails(spirit: String, flavor: String) -> [Cocktail] {
-    let key = "\(spirit)+\(flavor)"
-    if let r = cocktailDatabase[key] { return r }
-    if let r = cocktailDatabase.first(where: { $0.key.hasPrefix(spirit + "+") })?.value { return r }
-    if let r = cocktailDatabase.first(where: { $0.key.hasSuffix("+" + flavor) })?.value { return r }
-    return cocktailDatabase["Whiskey+Smokey"]!
+    if let r = cocktailDatabase["\(spirit)+\(flavor)"] { return r }
+    let keys = cocktailDatabase.keys.sorted()
+    if let k = keys.first(where: { $0.hasPrefix(spirit + "+") }), let r = cocktailDatabase[k] { return r }
+    if let k = keys.first(where: { $0.hasSuffix("+" + flavor) }), let r = cocktailDatabase[k] { return r }
+    return cocktailDatabase["Whiskey+Smoky"] ?? []
+}
+
+// MARK: - Saved Recipe Storage
+
+/// Saves the user's saved and created cocktails to a JSON file so they survive relaunches.
+enum CocktailStorage {
+    private static var fileURL: URL {
+        URL.documentsDirectory.appending(path: "savedCocktails.json")
+    }
+
+    static func load() -> [Cocktail] {
+        guard let data = try? Data(contentsOf: fileURL),
+              let cocktails = try? JSONDecoder().decode([Cocktail].self, from: data)
+        else { return [] }
+        return cocktails
+    }
+
+    static func save(_ cocktails: [Cocktail]) {
+        do {
+            let data = try JSONEncoder().encode(cocktails)
+            try data.write(to: fileURL, options: .atomic)
+        } catch {
+            print("Failed to save cocktails: \(error)")
+        }
+    }
 }

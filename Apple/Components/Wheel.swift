@@ -33,7 +33,7 @@ let spirits: [Spirit] = [
 ]
 
 let flavors: [FlavorProfile] = [
-    FlavorProfile(name: "Smokey",   color: UIColor(hex: "4A7A85"), altColor: UIColor(hex: "5C909C")),
+    FlavorProfile(name: "Smoky",   color: UIColor(hex: "4A7A85"), altColor: UIColor(hex: "5C909C")),
     FlavorProfile(name: "Fruity",   color: UIColor(hex: "3D6B75"), altColor: UIColor(hex: "4E8090")),
     FlavorProfile(name: "Herbal",   color: UIColor(hex: "336070"), altColor: UIColor(hex: "427585")),
     FlavorProfile(name: "Spicy",    color: UIColor(hex: "4A7A85"), altColor: UIColor(hex: "5C909C")),
@@ -50,8 +50,25 @@ struct WheelSelectorView: View {
     @Binding var selectedFlavor: String
     let onCraft: () -> Void
 
-    @State private var outerAngle: Double = 0
-    @State private var innerAngle: Double = 0
+    @State private var outerAngle: Double
+    @State private var innerAngle: Double
+
+    init(selectedSpirit: Binding<String>, selectedFlavor: Binding<String>, onCraft: @escaping () -> Void) {
+        _selectedSpirit = selectedSpirit
+        _selectedFlavor = selectedFlavor
+        self.onCraft = onCraft
+        // Start each ring with the current selection centered under the pointer,
+        // so the wheel and the labels above it agree before the first spin.
+        _outerAngle = State(initialValue: Self.angle(centering: selectedSpirit.wrappedValue, in: spirits.map(\.name)))
+        _innerAngle = State(initialValue: Self.angle(centering: selectedFlavor.wrappedValue, in: flavors.map(\.name)))
+    }
+
+    /// Ring rotation that puts `name`'s slice centered under the top pointer.
+    private static func angle(centering name: String, in items: [String]) -> Double {
+        let index = items.firstIndex(of: name) ?? 0
+        let slice = (2 * Double.pi) / Double(items.count)
+        return -Double.pi / 2 - slice / 2 - Double(index) * slice
+    }
 
     // Adjusted radii for the visual hierarchy
     private let outerRadius: CGFloat      = 350
@@ -165,9 +182,15 @@ struct WheelCanvas: UIViewRepresentable {
     }
 
     func updateUIView(_ v: WheelUIView, context: Context) {
+        context.coordinator.parent = self
         v.outerAngle = outerAngle
         v.innerAngle = innerAngle
         v.setNeedsDisplay()
+    }
+
+    static func dismantleUIView(_ uiView: WheelUIView, coordinator: Coordinator) {
+        coordinator.displayLink?.invalidate()
+        coordinator.displayLink = nil
     }
 
     class Coordinator: NSObject {
@@ -190,10 +213,16 @@ struct WheelCanvas: UIViewRepresentable {
 
             switch g.state {
             case .began:
-                displayLink?.invalidate()
                 lastAngle = angle; velocity = 0; lastTime = CACurrentMediaTime()
+                draggingRing = nil
                 if dist > parent.coreRadius && dist < parent.innerRadius { draggingRing = "inner" }
                 else if dist > parent.outerInnerRadius && dist < parent.outerRadius { draggingRing = "outer" }
+                if displayLink != nil {
+                    // Stop any ring that is still coasting. If it isn't the ring being
+                    // grabbed, snap it so it doesn't stay stuck between two slices.
+                    displayLink?.invalidate(); displayLink = nil
+                    if coastRing != draggingRing { snapToCenter(ring: coastRing) }
+                }
                 feedback.prepare()
             case .changed:
                 guard let ring = draggingRing else { return }
@@ -204,14 +233,17 @@ struct WheelCanvas: UIViewRepresentable {
                 if ring == "outer" { parent.outerAngle += Double(delta) } else { parent.innerAngle += Double(delta) }
                 lastAngle = angle; lastTime = CACurrentMediaTime()
                 parent.onSelectionChange()
-            case .ended:
-                coastRing = draggingRing ?? ""; coastAngle = velocity * 0.5
+            case .ended, .cancelled, .failed:
+                // A drag that started outside both rings shouldn't move or snap anything.
+                guard let ring = draggingRing else { return }
+                coastRing = ring; coastAngle = velocity * 0.5
                 draggingRing = nil; startCoast()
             default: break
             }
         }
 
         func startCoast() {
+            displayLink?.invalidate()
             displayLink = CADisplayLink(target: self, selector: #selector(coastStep))
             displayLink?.add(to: .main, forMode: .common)
         }
@@ -220,6 +252,7 @@ struct WheelCanvas: UIViewRepresentable {
             coastAngle *= 0.93
             if abs(coastAngle) < 0.005 {
                 displayLink?.invalidate()
+                displayLink = nil
                 snapToCenter(ring: coastRing)
                 return
             }

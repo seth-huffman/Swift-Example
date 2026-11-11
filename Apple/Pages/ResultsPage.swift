@@ -60,7 +60,17 @@ struct ResultsPage: View {
                         .clipShape(Capsule())
                         .cardShadow()
                 }
-                .padding(.bottom, 24)
+                .padding(.bottom, hasExactCocktails(spirit: spirit, flavor: flavor) ? 24 : 12)
+
+                if !hasExactCocktails(spirit: spirit, flavor: flavor) {
+                    Text("No \(spirit) × \(flavor) recipes yet.\nHere are some close matches instead.")
+                        .font(.custom("Nunito-SemiBold", size: 13))
+                        .foregroundColor(DS.textMid)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(3)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
+                }
 
                 // Cards
                 VStack(spacing: 12) {
@@ -68,15 +78,15 @@ struct ResultsPage: View {
                         CocktailCard(
                             cocktail: cocktail,
                             isExpanded: expandedIndex == index,
-                            isSaved: savedCocktails.contains { $0.id == cocktail.id },
+                            isSaved: savedCocktails.contains { $0.isSameRecipe(as: cocktail) },
                             onTap: {
                                 withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                                     expandedIndex = expandedIndex == index ? nil : index
                                 }
                             },
                             onHeartTap: {
-                                if let index = savedCocktails.firstIndex(where: { $0.id == cocktail.id }) {
-                                    savedCocktails.remove(at: index)
+                                if let savedIndex = savedCocktails.firstIndex(where: { $0.isSameRecipe(as: cocktail) }) {
+                                    savedCocktails.remove(at: savedIndex)
                                 } else {
                                     savedCocktails.append(cocktail)
                                 }

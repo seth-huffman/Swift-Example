@@ -7,8 +7,8 @@ struct ContentView: View {
     @State private var activeTab: AppTab = .discover
     @State private var showResults = false
     @State private var selectedSpirit = "Whiskey"
-    @State private var selectedFlavor = "Smokey"
-    @State private var savedCocktails: [Cocktail] = []
+    @State private var selectedFlavor = "Smoky"
+    @State private var savedCocktails: [Cocktail] = CocktailStorage.load()
 
     var body: some View {
         Group {
@@ -53,6 +53,9 @@ struct ContentView: View {
                 .ignoresSafeArea(edges: .bottom)
                 .preferredColorScheme(.light)
             }
+        }
+        .onChange(of: savedCocktails) { _, newValue in
+            CocktailStorage.save(newValue)
         }
     }
 }
