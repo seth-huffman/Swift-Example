@@ -7,13 +7,18 @@ struct IngredientRow: Identifiable {
     var unit: String = ""
 }
 
+struct InstructionStep: Identifiable {
+    let id = UUID()
+    var text: String = ""
+}
+
 struct CreateRecipePage: View {
     @Binding var savedCocktails: [Cocktail]
     @State private var selectedSpirits: Set<String> = []
     @State private var selectedFlavors: Set<String> = []
     @State private var recipeName: String = ""
     @State private var ingredientRows: [IngredientRow] = [IngredientRow()]
-    @State private var instructionSteps: [String] = [""]
+    @State private var instructionSteps: [InstructionStep] = [InstructionStep()]
     
     // Grid configuration for 3 columns
     private let threeColumnGrid = [
@@ -138,7 +143,10 @@ struct CreateRecipePage: View {
                             .tracking(1.4)
                         
                         VStack(spacing: 10) {
-                            ForEach(instructionSteps.indices, id: \.self) { index in
+                            // Bind by id, not by index: resetForm() shrinks this array, and
+                            // index-based bindings crash with "Index out of range" when it does.
+                            ForEach($instructionSteps) { $step in
+                                let index = instructionSteps.firstIndex { $0.id == step.id } ?? 0
                                 HStack(alignment: .top, spacing: 10) {
                                     Text("\(index + 1)")
                                         .font(.custom("Nunito-Black", size: 12))
@@ -148,13 +156,13 @@ struct CreateRecipePage: View {
                                         .clipShape(Circle())
                                         .padding(.top, 8)
                                     
-                                    TextField("Step \(index + 1)...", text: $instructionSteps[index], axis: .vertical)
+                                    TextField("Step \(index + 1)...", text: $step.text, axis: .vertical)
                                         .lineLimit(1...4)
                                         .textFieldStyle(RecipeTextFieldStyle())
                                 }
                             }
                             
-                            Button(action: { instructionSteps.append("") }) {
+                            Button(action: { instructionSteps.append(InstructionStep()) }) {
                                 HStack {
                                     Image(systemName: "plus.circle.fill")
                                     Text("Add Step")
@@ -192,7 +200,7 @@ struct CreateRecipePage: View {
         !selectedSpirits.isEmpty &&
         !selectedFlavors.isEmpty &&
         ingredientRows.contains { !$0.name.isBlank } &&
-        instructionSteps.contains { !$0.isBlank }
+        instructionSteps.contains { !$0.text.isBlank }
     }
     
     private func submitRecipe() {
@@ -208,7 +216,7 @@ struct CreateRecipePage: View {
             }
         
         // Create steps array filtered to remove empty strings
-        let steps = instructionSteps.map(\.trimmed).filter { !$0.isEmpty }
+        let steps = instructionSteps.map(\.text.trimmed).filter { !$0.isEmpty }
         
         // Create the new cocktail
         // Keep the spirits in the same order as the chips (a Set has no stable order).
@@ -232,7 +240,7 @@ struct CreateRecipePage: View {
         selectedSpirits = []
         selectedFlavors = []
         ingredientRows = [IngredientRow()]
-        instructionSteps = [""]
+        instructionSteps = [InstructionStep()]
     }
 }
 

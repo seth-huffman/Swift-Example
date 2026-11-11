@@ -77,7 +77,8 @@ struct CocktailCard: View {
 
                     VStack(alignment: .leading, spacing: 6) {
                         SectionLabel("Ingredients")
-                        ForEach(cocktail.ingredients, id: \.self) { item in
+                        // Offset ids: user-created recipes can repeat an ingredient line.
+                        ForEach(Array(cocktail.ingredients.enumerated()), id: \.offset) { _, item in
                             HStack(alignment: .top, spacing: 10) {
                                 Circle().fill(DS.cyan)
                                     .frame(width: 7, height: 7)
